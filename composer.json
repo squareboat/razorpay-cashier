@@ -1,0 +1,29 @@
+{
+    "name": "squareboat/razorpay-cashier",
+    "description": "A Laravel package for Razorpay payment gateway integration similar to Cashier",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Squareboat\\RazorpayCashier\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ankush Tyagi",
+            "email": "ankush.tyagi@squareboat.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^12.0",
+        "razorpay/razorpay": "^2.8"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/squareboat/razorpay-cashier"
+        }
+    ],
+    "minimum-stability": "dev"
+}
