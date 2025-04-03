@@ -1,8 +1,12 @@
 
 <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
-    <p><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="200" alt="Laravel Logo"></a></p>
-    <h1>+</h1>
-    <p><a href="https://razorpay.com" target="_blank"><img src="src/public/image.png" width="200" alt="Razorpay Logo"></a></p>
+    <a href="https://laravel.com" target="_blank">
+        <img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="200" alt="Laravel Logo">
+    </a>
+    <h1 style="margin: 0;">+</h1>
+    <a href="https://razorpay.com" target="_blank">
+        <img src="src/public/image.png" width="200" alt="Razorpay Logo">
+    </a>
 </div>
 
 # Razorpay Cashier for Laravel
