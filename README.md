@@ -1,5 +1,3 @@
-
-<!-- <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p> -->
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="src/public/razorpay_and_laravel-removebg-preview.png" width="400" alt="Laravel Logo"></a></p>
 
 # Razorpay Cashier for Laravel
@@ -153,6 +151,68 @@ Route::post('/charge-or-subscribe', function () {
     return response()->json(['message' => 'Payment successful']);
 });
 ```
+
+## Upcoming Features
+
+1. **Trial Periods:**
+   - Allow subscriptions to start with a trial period (e.g., 7 days free).
+   - Track `trial_ends_at` and check if the subscription is in trial mode.
+
+2. **Subscription Management (Pause, Resume, Cancel, Swap Plans):**
+   - Pause: Temporarily halt billing.
+   - Resume: Reactivate a paused subscription.
+   - Cancel: End a subscription with optional grace period.
+   - Swap Plans: Change the subscription plan mid-cycle.
+
+3. **Webhook Handling:**
+   - Process Razorpay webhook events (e.g., `subscription.charged`, `payment.failed`, `subscription.cancelled`).
+   - Store events in a `razorpay_events` table for idempotency and debugging.
+
+4. **Invoicing:**
+   - Generate and store invoices for subscription charges and one-time payments.
+   - Provide downloadable PDFs via Razorpay's Invoice API.
+
+5. **Payment Method Management:**
+   - Store and manage customer payment methods (e.g., cards) using Razorpay's Customer API.
+   - Allow updating or deleting payment methods.
+
+6. **Multi-Currency Support:**
+   - Support payments and subscriptions in multiple currencies (e.g., INR, USD).
+   - Configure currency dynamically via options or config.
+
+7. **Retries for Failed Payments:**
+   - Automatically retry failed subscription charges with configurable rules.
+   - Queue retries using Laravel's job system.
+
+8. **Grace Periods:**
+   - Allow a grace period after subscription cancellation or payment failure before deactivating services.
+   - Track `ends_at` for grace period logic.
+
+9. **Coupons/Discounts:**
+   - Apply Razorpay coupons to subscriptions or one-time charges.
+   - Store discount details locally.
+
+10. **Refunds:**
+    - Process refunds for one-time charges or subscription payments.
+    - Update local records accordingly.
+
+11. **Subscription Quantity:**
+    - Support variable quantities for subscriptions (e.g., 5 users on a plan).
+    - Adjust billing via Razorpay's `quantity` parameter.
+
+12. **Tax Handling:**
+    - Apply taxes to charges and subscriptions using Razorpay's tax features.
+    - Store tax details in invoices.
+
+13. **Customer Management:**
+    - Link Razorpay customers to Laravel users for recurring payments.
+    - Sync customer data (e.g., email, phone) with Razorpay.
+
+14. **Payment Receipts:**
+    - Send email receipts for successful payments via Razorpay's email system or Laravel's mail.
+
+15. **Frontend Integration Enhancements:**
+    - Add prebuilt Blade components or JavaScript helpers for easier checkout integration.
 
 ## Testing
 
