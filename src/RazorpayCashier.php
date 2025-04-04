@@ -25,4 +25,38 @@ class RazorpayCashier
 
         return $order;
     }
+
+    public function charge($user, $amount, $options = [])
+    {
+        $order = $this->api->order->create(array_merge([
+            'amount' => $amount,
+            'currency' => config('razorpay.currency', 'INR'),
+            'receipt' => 'receipt_' . $user->id . '_' . time(),
+        ], $options));
+        // Note: Payment must be captured via frontend; return order details for now
+        return ['id' => $order->id, 'status' => 'created'];
+    }
+
+    public function capturePayment($paymentId, $amount)
+    {
+        $payment = $this->api->payment->fetch($paymentId);
+        return $payment->capture(['amount' => $amount]);
+    }
+
+    public function createSubscription($planId, $paymentMethodId)
+    {
+        $subscription = $this->api->subscription->create([
+            'plan_id' => $planId,
+            'total_count' => 12, // Example: 12 billing cycles
+            'quantity' => 1,
+        ]);
+
+        // Capture the initial payment
+        $this->capturePayment($paymentMethodId, 10000); // Adjust amount dynamically in future
+
+        return [
+            'id' => $subscription->id,
+            'status' => 'active',
+        ];
+    }
 }

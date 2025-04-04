@@ -7,8 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 class Subscription extends Model
 {
     protected $fillable = [
-        'razorpay_subscription_id',
+        'user_id',
+        'name',
         'plan_id',
+        'razorpay_subscription_id',
         'status',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
 }
