@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('razorpay_subscription_id')->unique();
             $table->string('plan_id');
             $table->string('status');
+            $table->timestamp('trial_ends_at')->nullable();
             $table->timestamps();
         });
     }
