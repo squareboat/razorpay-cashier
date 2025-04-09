@@ -32,4 +32,28 @@ trait Billable
     {
         return $this->hasMany(\Squareboat\RazorpayCashier\Models\Subscription::class);
     }
+
+    public function pauseSubscription($subscriptionId)
+    {
+        $razorpay = new RazorpayCashier();
+        return $razorpay->pauseSubscription($subscriptionId);
+    }
+
+    public function resumeSubscription($subscriptionId)
+    {
+        $razorpay = new RazorpayCashier();
+        return $razorpay->resumeSubscription($subscriptionId);
+    }
+
+    public function cancelSubscription($subscriptionId, $graceDays = 0)
+    {
+        $razorpay = new RazorpayCashier();
+        return $razorpay->cancelSubscription($subscriptionId, $graceDays);
+    }
+
+    public function swapPlan($subscriptionId, $newPlanId)
+    {
+        $razorpay = new RazorpayCashier();
+        return $razorpay->swapPlan($subscriptionId, $newPlanId);
+    }
 }

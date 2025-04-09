@@ -14,7 +14,13 @@ class Subscription extends Model
         'razorpay_subscription_id',
         'status',
         'trial_ends_at',
+        'paused_at',
+        'resumed_at',
+        'canceled_at',
+        'grace_ends_at',
     ];
+
+    protected $dates = ['trial_ends_at', 'paused_at', 'resumed_at', 'canceled_at', 'grace_ends_at'];
 
     public function user(): BelongsTo
     {
@@ -43,5 +49,20 @@ class Subscription extends Model
             return true;
         }
         return false;
+    }
+
+    public function isPaused()
+    {
+        return $this->is_paused;
+    }
+
+    public function isCanceled()
+    {
+        return $this->canceled_at !== null;
+    }
+
+    public function inGracePeriod()
+    {
+        return $this->grace_ends_at && now()->isBefore($this->grace_ends_at);
     }
 }

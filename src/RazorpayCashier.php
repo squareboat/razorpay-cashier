@@ -70,4 +70,93 @@ class RazorpayCashier
             'status' => 'active',
         ];
     }
+
+    public function createCustomer($user)
+    {
+        return $this->api->customer->create([
+            'name' => $user->name,
+            'email' => $user->email,
+            'contact' => $user->phone ?? '',
+            'fail_existing' => 0,
+        ]);
+    }
+
+    public function syncTrialStatus($subscriptionId)
+    {
+        $razorpaySubscription = $this->api->subscription->fetch($subscriptionId);
+        $localSubscription = \Squareboat\RazorpayCashier\Models\Subscription::where('razorpay_subscription_id', $subscriptionId)->first();
+
+        if ($localSubscription && $localSubscription->hasTrialEnded() && $razorpaySubscription->status === 'active') {
+            $localSubscription->update(['status' => 'trialed']);
+        }
+        return $localSubscription;
+    }
+
+    public function pauseSubscription($subscriptionId)
+    {
+        $subscription = $this->api->subscription->fetch($subscriptionId);
+        if ($subscription->status === 'active') {
+            $subscription->pause(); // Razorpay pauses billing
+            $localSubscription = \Squareboat\RazorpayCashier\Models\Subscription::where('razorpay_subscription_id', $subscriptionId)->first();
+            if ($localSubscription) {
+                $localSubscription->update(['is_paused' => true, 'paused_at' => now()]);
+                return true;
+            } else {
+                logger('Local subscription not found for ID: ' . $subscriptionId);
+                return false;
+            }
+        } else {
+            logger('Cannot pause: Status is ' . $subscription->status . '. Subscription must be active.');
+            return false;
+        }
+    }
+
+    public function resumeSubscription($subscriptionId)
+    {
+        $subscription = $this->api->subscription->fetch($subscriptionId);
+        if ($subscription->status === 'paused') {
+            $subscription->resume(); // Razorpay resumes billing
+            $localSubscription = \Squareboat\RazorpayCashier\Models\Subscription::where('razorpay_subscription_id', $subscriptionId)->first();
+            $localSubscription->update(['is_paused' => false, 'resumed_at' => now()]);
+            return true;
+        }
+        return false;
+    }
+
+    public function cancelSubscription($subscriptionId, $graceDays = 0)
+    {
+        $subscription = $this->api->subscription->fetch($subscriptionId);
+        if (in_array($subscription->status, ['active', 'paused', 'created'])) {
+            $subscription->cancel(); // Razorpay cancels subscription
+            $localSubscription = \Squareboat\RazorpayCashier\Models\Subscription::where('razorpay_subscription_id', $subscriptionId)->first();
+            $localSubscription->update([
+                'canceled_at' => now(),
+                'grace_ends_at' => $graceDays > 0 ? now()->addDays($graceDays) : null,
+                'status' => 'cancelled',
+            ]);
+            return true;
+        }
+        return false;
+    }
+
+    public function swapPlan($subscriptionId, $newPlanId)
+    {
+        $subscription = $this->api->subscription->fetch($subscriptionId);
+        if (in_array($subscription->status, ['active', 'paused'])) {
+            $newPlan = $this->api->plan->fetch($newPlanId);
+            $subscription->update(['plan_id' => $newPlanId]); // Razorpay updates plan
+            $localSubscription = \Squareboat\RazorpayCashier\Models\Subscription::where('razorpay_subscription_id', $subscriptionId)->first();
+            $localSubscription->update(['plan_id' => $newPlanId]);
+            return true;
+        }
+        return false;
+    }
+
+    protected function getUserFromContext()
+    {
+        if (function_exists('auth') && auth()->check()) {
+            return auth()->user();
+        }
+        throw new \Exception('User context not available. Use authenticated user or pass user explicitly.');
+    }
 }
