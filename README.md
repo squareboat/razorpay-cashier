@@ -287,56 +287,110 @@ Use the following methods on a `Billable` model (e.g., `User`):
 - **Database Mismatch**: Sync with Razorpay using `syncTrialStatus` if needed.
 - **Errors**: Review `storage/logs/laravel.log` for API or database issues.
 
+## Invoicing
+
+The `squareboat/razorpay-cashier` package integrates with Razorpay's official invoicing feature and syncs details to a local invoices table for hybrid management.
+
+### Setup
+
+- Run the migration to create the invoices table:
+  ```bash
+  php artisan migrate
+  ```
+- Ensure you have configured Razorpay API keys in your .env:
+  ```env
+  RAZORPAY_KEY=your_razorpay_key_id
+  RAZORPAY_SECRET=your_razorpay_secret
+  ```
+- Enable invoicing in your Razorpay Dashboard under **Invoicing**.
+
+### Usage
+
+Use the following methods on a `Billable` model (e.g., `User`):
+
+- **`createRazorpayInvoice($subscriptionId, $customerId = null, $notes = null, array $lineItems = [])`**: Creates a Razorpay invoice linked to a subscription and syncs it locally.
+  ```php
+  $user->createRazorpayInvoice('sub_QGXpowM0Ewrq0', null, 'First invoice', [
+      ['name' => 'Subscription Fee', 'amount' => 1000, 'quantity' => 1]
+  ]);
+  ```
+  - **Endpoint**: POST /create-razorpay-invoice/{subscriptionId}
+  - **Response**: `{"success": true, "message": "Razorpay invoice created and synced locally", "razorpay_invoice": {...}, "local_invoice": {...}}` or failure details.
+  - **Note**: Amount is derived from the subscription plan unless lineItems are provided (amount in rupees, converted to paise). Provide a customerId if available.
+
+- **`getRazorpayInvoice($invoiceId)`**: Retrieves a Razorpay invoice and syncs with the local record.
+  ```php
+  $user->getRazorpayInvoice('inv_1abcde');
+  ```
+  - **Endpoint**: GET /get-razorpay-invoice/{invoiceId}
+  - **Response**: `{"success": true, "razorpay_invoice": {...}, "local_invoice": {...}}` or failure details.
+
+- **`updateRazorpayInvoiceStatus($invoiceId, $action)`**: Updates the Razorpay invoice status and syncs locally (e.g., issue, cancel).
+  ```php
+  $user->updateRazorpayInvoiceStatus('inv_1abcde', 'issue');
+  ```
+  - **Endpoint**: POST /update-razorpay-invoice-status/{invoiceId}/{action}
+  - **Response**: `{"success": true, "message": "Razorpay invoice issued successfully", "razorpay_invoice": {...}, "local_invoice": {...}}` or failure details.
+
+### Notes
+
+- Replace `sub_QGXpowM0Ewrq0` and `inv_1abcde` with valid Razorpay subscription and invoice IDs.
+- Currency defaults to INR; contact Razorpay for international support.
+- Local invoices table syncs with Razorpay data for offline access or custom reporting.
+- For testing, use the `bypass.csrf` middleware (registered in `bootstrap/app.php`).
+
+### Troubleshooting
+
+- **Failure Responses**: Check the message field and logs (`storage/logs/laravel.log`) for details (e.g., invalid subscription).
+- **API Errors**: Ensure API keys are correct and invoicing is enabled in Razorpay.
+- **Database Sync**: Verify the invoices table is populated and subscription IDs are valid.
+
 ## Upcoming Features
 
 1. **Webhook Handling:**
    - Process Razorpay webhook events (e.g., `subscription.charged`, `payment.failed`, `subscription.cancelled`).
    - Store events in a `razorpay_events` table for idempotency and debugging.
 
-2. **Invoicing:**
-   - Generate and store invoices for subscription charges and one-time payments.
-   - Provide downloadable PDFs via Razorpay's Invoice API.
-
-3. **Payment Method Management:**
+2. **Payment Method Management:**
    - Store and manage customer payment methods (e.g., cards) using Razorpay's Customer API.
    - Allow updating or deleting payment methods.
 
-4. **Multi-Currency Support:**
+3. **Multi-Currency Support:**
    - Support payments and subscriptions in multiple currencies (e.g., INR, USD).
    - Configure currency dynamically via options or config.
 
-5. **Retries for Failed Payments:**
+4. **Retries for Failed Payments:**
    - Automatically retry failed subscription charges with configurable rules.
    - Queue retries using Laravel's job system.
 
-6. **Grace Periods:**
+5. **Grace Periods:**
    - Allow a grace period after subscription cancellation or payment failure before deactivating services.
    - Track `ends_at` for grace period logic.
 
-7. **Coupons/Discounts:**
+6. **Coupons/Discounts:**
    - Apply Razorpay coupons to subscriptions or one-time charges.
    - Store discount details locally.
 
-8. **Refunds:**
+7. **Refunds:**
     - Process refunds for one-time charges or subscription payments.
     - Update local records accordingly.
 
-9. **Subscription Quantity:**
+8. **Subscription Quantity:**
     - Support variable quantities for subscriptions (e.g., 5 users on a plan).
     - Adjust billing via Razorpay's `quantity` parameter.
 
-10. **Tax Handling:**
+9. **Tax Handling:**
     - Apply taxes to charges and subscriptions using Razorpay's tax features.
     - Store tax details in invoices.
 
-11. **Customer Management:**
+10. **Customer Management:**
     - Link Razorpay customers to Laravel users for recurring payments.
     - Sync customer data (e.g., email, phone) with Razorpay.
 
-12. **Payment Receipts:**
+11. **Payment Receipts:**
     - Send email receipts for successful payments via Razorpay's email system or Laravel's mail.
 
-13. **Frontend Integration Enhancements:**
+12. **Frontend Integration Enhancements:**
     - Add prebuilt Blade components or JavaScript helpers for easier checkout integration.
 
 ## Testing
