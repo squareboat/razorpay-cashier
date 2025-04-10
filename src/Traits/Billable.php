@@ -56,4 +56,22 @@ trait Billable
         $razorpay = new RazorpayCashier();
         return $razorpay->swapPlan($subscriptionId, $newPlanId);
     }
+
+    public function createRazorpayInvoice($subscriptionId, $customerId = null, $notes = null, array $lineItems = [])
+    {
+        $razorpay = new RazorpayCashier();
+        return $razorpay->createRazorpayInvoice($subscriptionId, $customerId, $notes, $lineItems);
+    }
+
+    public function getRazorpayInvoice($invoiceId)
+    {
+        $razorpay = new RazorpayCashier();
+        return $razorpay->getRazorpayInvoice($invoiceId);
+    }
+
+    public function updateRazorpayInvoiceStatus($invoiceId, $action)
+    {
+        $razorpay = new RazorpayCashier();
+        return $razorpay->updateRazorpayInvoiceStatus($invoiceId, $action);
+    }
 }
