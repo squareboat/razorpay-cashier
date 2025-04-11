@@ -169,14 +169,43 @@ Use Razorpay's checkout.js to initiate payments:
 Backend Route (e.g., `routes/web.php`):
 
 ```php
-Route::post('/charge-or-subscribe', function () {
+Route::get('/test-payment', function () {
+    $razorpayApi = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+    $plan = $razorpayApi->plan->fetch('plan_QEv23lVNekinmU');
+    return view('payment', [
+        'plan_amount' => $plan->item->amount, // Access amount from item
+        'charge_amount' => 10000,
+    ]);
+});
+
+Route::post('/charge', function (Request $request) {
     $user = auth()->user();
-    $paymentMethodId = request('payment_method_id');
-    // For one-time charge:
-    // $user->charge(10000);
-    // For subscription:
-    $user->newSubscription('default', 'plan_id')->create($paymentMethodId);
-    return response()->json(['message' => 'Payment successful']);
+
+    $paymentMethodId = $request->input('payment_method_id');
+    if (!$paymentMethodId) {
+        return response()->json(['error' => 'Payment method ID missing'], 400);
+    }
+
+    $razorpay = new \Squareboat\RazorpayCashier\RazorpayCashier();
+    $payment = $razorpay->capturePayment($paymentMethodId, 10000); // 100 INR
+    return response()->json(['message' => 'Payment successful', 'payment' => $payment]);
+});
+
+Route::post('/subscribe', function (Request $request) {
+
+    $user = auth()->user();
+
+    $paymentMethodId = $request->input('payment_method_id');
+    if (!$paymentMethodId) {
+        return response()->json(['error' => 'Payment method ID missing'], 400);
+    }
+
+    // Replace 'plan_xxxxxxxxxx' with a real Razorpay plan ID from your dashboard
+    $subscription = $user->newSubscription('default', 'plan_QEv23lVNekinmU')
+        ->trialDays(7) // 7-day trial
+        ->create($paymentMethodId);
+
+    return response()->json(['message' => 'Subscription created with trial', 'subscription' => $subscription]);
 });
 ```
 
