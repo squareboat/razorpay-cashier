@@ -109,33 +109,61 @@ Replace `plan_id_from_razorpay` with a plan ID created in your Razorpay Dashboar
 Use Razorpay's checkout.js to initiate payments:
 
 ```html
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<button id="pay-btn">Pay Now</button>
+    <button id="charge-btn">Pay 100 INR</button>
+    <button id="subscribe-btn">Subscribe (100 INR)</button>
 
-<script>
-    document.getElementById('pay-btn').onclick = function() {
-        var options = {
-            key: "{{ config('razorpay.key') }}",
-            amount: 10000, // 100 INR in paise
-            currency: "INR",
-            name: "Your App Name",
-            description: "One-time Charge or Subscription",
-            handler: function(response) {
-                fetch('/charge-or-subscribe', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        payment_method_id: response.razorpay_payment_id
-                    })
-                })
-                .then(res => res.json())
-                .then(data => alert(data.message));
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        function pay(amount, endpoint) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                return;
             }
+            var options = {
+                key: "{{ config('razorpay.key') }}",
+                amount: amount,
+                currency: "INR",
+                name: "Razorpay charge",
+                description: endpoint === '/charge' ? 'One-time Charge' : 'Subscription',
+                handler: function(response) {
+                    console.log('Razorpay response:', response); // Log Razorpay response
+
+                    fetch(endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            body: JSON.stringify({
+                                payment_method_id: response.razorpay_payment_id
+                            })
+                        })
+                        .then(res => {
+                            console.log('Raw response:', res);
+                            return res.json();
+                        })
+                        .then(data => {
+                            console.log('Parsed JSON:', data);
+                        })
+                        .catch(error => {
+                            console.error('Fetch error:', error);
+                        });
+                }
+
+            };
+            var rzp = new Razorpay(options);
+            rzp.open();
+        }
+
+
+        document.getElementById('charge-btn').onclick = function() {
+            pay({{ $charge_amount }}, '/charge');
         };
-        var rzp = new Razorpay(options);
-        rzp.open();
-    };
-</script>
+        document.getElementById('subscribe-btn').onclick = function() {
+            pay({{ $plan_amount }}, '/subscribe');
+        };
+    </script>
 ```
 
 Backend Route (e.g., `routes/web.php`):
