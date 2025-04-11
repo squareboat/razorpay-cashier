@@ -25,5 +25,12 @@
             "url": "packages/squareboat/razorpay-cashier"
         }
     ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Squareboat\\RazorpayCashier\\ServiceProvider"
+            ]
+        }
+    },
     "minimum-stability": "dev"
 }
